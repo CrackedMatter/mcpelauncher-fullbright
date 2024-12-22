@@ -19,9 +19,9 @@ void FloatOption_ctor_old(void* self, int a, int b, int c, void* d, std::string&
     FloatOption_ctor_hook.call(self, a, b, c, d, saveTag, f, g, max);
 }
 
-extern "C" __attribute__ ((visibility ("default"))) void mod_preinit() {}
+extern "C" [[gnu::visibility("default")]] void mod_preinit() {}
 
-extern "C" __attribute__ ((visibility ("default"))) void mod_init() {
+extern "C" [[gnu::visibility("default")]] void mod_init() {
     using namespace hat::literals::signature_literals;
 
     static std::span<std::byte> r;
@@ -40,8 +40,8 @@ extern "C" __attribute__ ((visibility ("default"))) void mod_init() {
         return 0;
     }, dlopen("libminecraftpe.so", 0));
 
-    if (auto addr = hat::find_pattern<hat::scan_alignment::X16>(r.begin(), r.end(), "55 41 57 41 56 41 55 41 54 53 48 83 EC 48 F3 0F 11 5C 24 10"_sig).get())
-        FloatOption_ctor_hook = safetyhook::create_inline(addr, reinterpret_cast<void*>(FloatOption_ctor));
-    else if ((addr = hat::find_pattern<hat::scan_alignment::X16>(r.begin(), r.end(), "55 41 57 41 56 41 55 41 54 53 48 83 EC 48 0F 29 54 24 30"_sig).get()))
-        FloatOption_ctor_hook = safetyhook::create_inline(addr, reinterpret_cast<void*>(FloatOption_ctor_old));
+    if (auto addr = hat::find_pattern(r, "55 41 57 41 56 41 55 41 54 53 48 83 EC 48 F3 0F 11 5C 24 10"_sig, hat::scan_alignment::X16).get())
+        FloatOption_ctor_hook = safetyhook::create_inline(addr, FloatOption_ctor);
+    else if ((addr = hat::find_pattern(r, "55 41 57 41 56 41 55 41 54 53 48 83 EC 48 0F 29 54 24 30"_sig, hat::scan_alignment::X16).get()))
+        FloatOption_ctor_hook = safetyhook::create_inline(addr, FloatOption_ctor_old);
 }

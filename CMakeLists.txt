@@ -8,12 +8,12 @@ include(FetchContent)
 
 FetchContent_Declare(libhat
         GIT_REPOSITORY https://github.com/BasedInc/libhat.git
-        GIT_TAG e457476d3c4f38242ec65998007221a413f1f26f
+        GIT_TAG 5cf79adf86152233371b43adab5a0f9db6daa4e7
         EXCLUDE_FROM_ALL)
 
 FetchContent_Declare(safetyhook
         GIT_REPOSITORY https://github.com/cursey/safetyhook.git
-        GIT_TAG b046e123dc69821f2c375161e0adef3c6d9c9db4
+        GIT_TAG de83823750b604c83b93bc80683b02978d3ae589
         EXCLUDE_FROM_ALL)
 
 set(SAFETYHOOK_FETCH_ZYDIS ON)
@@ -22,6 +22,6 @@ FetchContent_MakeAvailable(libhat safetyhook)
 
 add_library(fullbright SHARED src/main.cpp)
 
-target_link_libraries(fullbright PUBLIC libhat safetyhook::safetyhook)
+target_link_libraries(fullbright PUBLIC libhat::libhat safetyhook::safetyhook)
 
 install(TARGETS fullbright LIBRARY DESTINATION mods)
