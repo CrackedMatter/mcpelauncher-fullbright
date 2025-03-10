@@ -4,21 +4,12 @@ project(fullbright)
 
 set(CMAKE_CXX_STANDARD 23)
 
-include(FetchContent)
+set(CPM_SOURCE_CACHE ${PROJECT_SOURCE_DIR}/cpm-cache CACHE PATH "")
+include(cmake/CPM.cmake)
 
-FetchContent_Declare(libhat
-        GIT_REPOSITORY https://github.com/BasedInc/libhat.git
-        GIT_TAG 5cf79adf86152233371b43adab5a0f9db6daa4e7
-        EXCLUDE_FROM_ALL)
-
-FetchContent_Declare(safetyhook
-        GIT_REPOSITORY https://github.com/cursey/safetyhook.git
-        GIT_TAG de83823750b604c83b93bc80683b02978d3ae589
-        EXCLUDE_FROM_ALL)
-
-set(SAFETYHOOK_FETCH_ZYDIS ON)
-
-FetchContent_MakeAvailable(libhat safetyhook)
+CPMAddPackage("gh:BasedInc/libhat@0.4.0")
+CPMAddPackage("gh:zyantific/zydis@4.1.1")
+CPMAddPackage("gh:cursey/safetyhook@0.6.5")
 
 add_library(fullbright SHARED src/main.cpp)
 
