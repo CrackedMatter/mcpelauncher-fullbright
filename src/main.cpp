@@ -1,5 +1,6 @@
+#include <cstddef>
 #include <dlfcn.h>
-#include <libhat/Scanner.hpp>
+#include <libhat/scanner.hpp>
 #include <link.h>
 #include <safetyhook.hpp>
 #include <span>
@@ -24,24 +25,26 @@ extern "C" [[gnu::visibility("default")]] void mod_preinit() {}
 extern "C" [[gnu::visibility("default")]] void mod_init() {
     using namespace hat::literals::signature_literals;
 
-    static std::span<std::byte> r;
+    auto mcLib = dlopen("libminecraftpe.so", 0);
 
-    dl_iterate_phdr([](dl_phdr_info* info, size_t, void* mc) {
-        auto h = dlopen(info->dlpi_name, RTLD_NOLOAD);
-        dlclose(h);
-        if (h == mc) {
-            for (auto& phdr: std::span{info->dlpi_phdr, info->dlpi_phnum}) {
-                if (phdr.p_type == PT_LOAD && phdr.p_flags & PF_X) {
-                    r = {reinterpret_cast<std::byte*>(info->dlpi_addr + phdr.p_vaddr), phdr.p_memsz};
-                    return 1;
-                }
-            }
-        }
-        return 0;
-    }, dlopen("libminecraftpe.so", 0));
+    std::span<std::byte> range1;
 
-    if (auto addr = hat::find_pattern(r, "55 41 57 41 56 41 55 41 54 53 48 83 EC 48 F3 0F 11 5C 24 10"_sig, hat::scan_alignment::X16).get())
+    auto callback = [&](const dl_phdr_info& info) {
+        if (auto h = dlopen(info.dlpi_name, RTLD_NOLOAD); dlclose(h), h != mcLib)
+            return 0;
+        range1 = {reinterpret_cast<std::byte*>(info.dlpi_addr + info.dlpi_phdr[1].p_vaddr), info.dlpi_phdr[1].p_memsz};
+        return 1;
+    };
+
+    dl_iterate_phdr(
+        [](dl_phdr_info* info, size_t, void* data) {
+            return (*static_cast<decltype(callback)*>(data))(*info);
+        },
+        &callback);
+
+    if (auto addr = hat::find_pattern(range1, "55 41 57 41 56 41 55 41 54 53 48 83 EC 68 F3 0F 11 5C 24 08"_sig, hat::scan_alignment::X16).get();
+        addr || ((addr = hat::find_pattern(range1, "55 41 57 41 56 41 55 41 54 53 48 83 EC 48 F3 0F 11 5C 24 10"_sig, hat::scan_alignment::X16).get())))
         FloatOption_ctor_hook = safetyhook::create_inline(addr, FloatOption_ctor);
-    else if ((addr = hat::find_pattern(r, "55 41 57 41 56 41 55 41 54 53 48 83 EC 48 0F 29 54 24 30"_sig, hat::scan_alignment::X16).get()))
+    else if ((addr = hat::find_pattern(range1, "55 41 57 41 56 41 55 41 54 53 48 83 EC 48 0F 29 54 24 30"_sig, hat::scan_alignment::X16).get()))
         FloatOption_ctor_hook = safetyhook::create_inline(addr, FloatOption_ctor_old);
 }
