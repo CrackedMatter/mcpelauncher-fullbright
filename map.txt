@@ -1,4 +1,4 @@
-LIBMCPELAUNCHEROLDSCREENANIMATIONS {
+LIBFULLBRIGHT {
   global:
     mod_init;
     mod_preinit;
