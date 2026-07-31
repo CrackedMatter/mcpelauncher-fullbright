@@ -64,12 +64,12 @@ static void hook(std::string_view name, const hat::process::module& mod) {
         return;
     }
 
-    auto fn = static_cast<std::unique_ptr<BaseLightData> (**)(void*, const BaseLightData&)>(vt) + 5;
+    auto fn = static_cast<std::unique_ptr<BaseLightData> (**)(void*, void*, const BaseLightData&)>(vt) + 5;
 
     static auto original = *fn;
 
-    *fn = [](void* client, const BaseLightData& currentData) {
-        auto ret = original(client, currentData);
+    *fn = [](void* self, void* client, const BaseLightData& currentData) {
+        auto ret = original(self, client, currentData);
 
         if (enabled) {
             ret->mNightvisionActive = true;
